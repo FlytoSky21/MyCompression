@@ -15,7 +15,7 @@ class ImgAug(object):
 
     def __call__(self, data):
         # Unpack data
-        img, img_lr,boxes = data
+        img, img_lr,img_lr_edge,boxes = data
 
         # Convert xywh to xyxy
         boxes = np.array(boxes)
@@ -32,6 +32,7 @@ class ImgAug(object):
             bounding_boxes=bounding_boxes)
 
         img_lr=iaa.PadToAspectRatio(1.0, position="center-center").to_deterministic()(image=img_lr)
+        img_lr_edge = iaa.PadToAspectRatio(1.0, position="center-center").to_deterministic()(image=img_lr_edge)
 
         # Clip out of image boxes
         bounding_boxes = bounding_boxes.clip_out_of_image()
@@ -52,7 +53,7 @@ class ImgAug(object):
             boxes[box_idx, 3] = (x2 - x1)
             boxes[box_idx, 4] = (y2 - y1)
 
-        return img, img_lr,boxes
+        return img, img_lr,img_lr_edge,boxes
 
 
 class RelativeLabels(object):
@@ -60,11 +61,11 @@ class RelativeLabels(object):
         pass
 
     def __call__(self, data):
-        img, img_lr,boxes = data
+        img, img_lr,img_lr_edge,boxes = data
         h, w, _ = img.shape
         boxes[:, [1, 3]] /= w
         boxes[:, [2, 4]] /= h
-        return img,img_lr, boxes
+        return img,img_lr,img_lr_edge, boxes
 
 
 class AbsoluteLabels(object):
@@ -72,11 +73,11 @@ class AbsoluteLabels(object):
         pass
 
     def __call__(self, data):
-        img, img_lr,boxes = data
+        img, img_lr,img_lr_edge,boxes = data
         h, w, _ = img.shape
         boxes[:, [1, 3]] *= w
         boxes[:, [2, 4]] *= h
-        return img,img_lr, boxes
+        return img,img_lr,img_lr_edge, boxes
 
 
 class PadSquare(ImgAug):
@@ -93,14 +94,15 @@ class ToTensor(object):
         pass
 
     def __call__(self, data):
-        img, img_lr,boxes = data
+        img, img_lr,img_lr_edge,boxes = data
         # Extract image as PyTorch tensor
         img = transforms.ToTensor()(img)
         img_lr = transforms.ToTensor()(img_lr)
+        img_lr_edge = transforms.ToTensor()(img_lr_edge)
         bb_targets = torch.zeros((len(boxes), 6))
         bb_targets[:, 1:] = transforms.ToTensor()(boxes)
 
-        return img, img_lr,bb_targets
+        return img, img_lr,img_lr_edge,bb_targets
 
 
 class Resize(object):

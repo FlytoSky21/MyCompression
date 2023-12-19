@@ -13,6 +13,7 @@ from pathlib import Path
 import random
 import matplotlib.pyplot as plt
 from PIL import ImageFile
+from skimage import color, feature
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
@@ -43,16 +44,22 @@ class Vimeo90KDataset(Dataset):
         # 获取裁剪后的 256x256 图像
         img_lr = img.resize((256 // 8, 256 // 8), Image.BICUBIC)
 
+        # 将裁剪过后的图像转换为灰度图
+        gray_img_lr = color.rgb2gray(img_lr)
+        # 使用canny算子进行边缘检测
+        edge_img_lr = feature.canny(gray_img_lr, sigma=1)
+
         # 转换为 PyTorch 的 Tensor
         img = transforms.ToTensor()(img)
         img_lr = transforms.ToTensor()(img_lr)
+        edge_img_lr = transforms.ToTensor()(edge_img_lr)
 
         # # 如果定义了额外的变换，则应用它们
         # if self.transform:
         #     img = self.transform(img)
         #     img_lr = self.transform(img_lr)
 
-        return img, img_lr
+        return img, img_lr, edge_img_lr
 
 
 if __name__ == "__main__":
@@ -64,12 +71,14 @@ if __name__ == "__main__":
     vimeo_dataset = Vimeo90KDataset(data_dir, transform=transform)
 
     # 获取数据集的一个样本
-    sample_lr, sample_hr = vimeo_dataset[0]
-
-    plt.imshow(sample_lr)
-    plt.show()
-
+    sample_hr, sample_lr, sample_lr_edge = vimeo_dataset[0]
+    plt.figure(figsize=(10, 5))
+    plt.subplot(1, 3, 1)
     plt.imshow(sample_hr)
+    plt.subplot(1, 3, 2)
+    plt.imshow(sample_lr)
+    plt.subplot(1, 3, 3)
+    plt.imshow(sample_lr_edge)
     plt.show()
 
     # 打印样本的形状

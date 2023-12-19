@@ -40,7 +40,7 @@
       <paths name="adminroot@172.31.179.211:32116 password">
         <serverdata>
           <mappings>
-            <mapping deploy="/home/adminroot/taofei/DCC2023fuxian" local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="/home/adminroot/taofei/MyCompression" local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>
@@ -55,6 +55,34 @@
         <serverdata>
           <mappings>
             <mapping deploy="/home/adminroot/taofei/DCC2023fuxian" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="adminroot@172.31.179.211:32116 password (3)">
+        <serverdata>
+          <mappings>
+            <mapping local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="adminroot@172.31.179.211:32116 password (4)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/adminroot/taofei/MyCompression" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="adminroot@172.31.179.211:32116 password (5)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/adminroot/taofei/MyCompression" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="adminroot@172.31.179.211:32116 password (6)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/adminroot/taofei/MyCompression" local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>

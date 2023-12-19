@@ -8,6 +8,7 @@ import warnings
 import numpy as np
 from PIL import Image
 from PIL import ImageFile
+from skimage import color, feature
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
@@ -36,7 +37,6 @@ class ImageFolder(Dataset):
         self.transform = transform
 
     def __getitem__(self, index):
-
         img_path = self.files[index % len(self.files)]
         img = np.array(
             Image.open(img_path).convert('RGB'),
@@ -90,9 +90,15 @@ class ListDataset(Dataset):
             # img = np.array(Image.open(img_path).convert('RGB'), dtype=np.uint8)
             img = Image.open(img_path).convert('RGB')
             width, height = img.size
-            img_lr=img.resize((width//8,height//8),Image.BICUBIC)
-            img=np.array(img,dtype=np.uint8)
+            img_lr = img.resize((width // 8, height // 8), Image.BICUBIC)
+            # 将裁剪过后的图像转换为灰度图
+            gray_img_lr = color.rgb2gray(img_lr)
+            # 使用canny算子进行边缘检测
+            edge_img_lr = feature.canny(gray_img_lr, sigma=1)
+
+            img = np.array(img, dtype=np.uint8)
             img_lr = np.array(img_lr, dtype=np.uint8)
+            edge_img_lr = np.array(edge_img_lr, dtype=np.uint8)
         except Exception:
             print(f"Could not read image '{img_path}'.")
             return
@@ -116,12 +122,12 @@ class ListDataset(Dataset):
         # -----------
         if self.transform:
             try:
-                img,img_lr, bb_targets = self.transform((img,img_lr, boxes))
+                img, img_lr, edge_img_lr, bb_targets = self.transform((img, img_lr, edge_img_lr, boxes))
             except Exception:
                 print("Could not apply transform.")
                 return
 
-        return img_path, img, img_lr,bb_targets
+        return img_path, img, img_lr, edge_img_lr, bb_targets
 
     def collate_fn(self, batch):
         self.batch_count += 1
@@ -129,7 +135,7 @@ class ListDataset(Dataset):
         # Drop invalid images
         batch = [data for data in batch if data is not None]
 
-        paths, imgs,img_lrs, bb_targets = list(zip(*batch))
+        paths, imgs, img_lrs, edge_img_lrs, bb_targets = list(zip(*batch))
 
         # Selects new image size every tenth batch
         if self.multiscale and self.batch_count % 10 == 0:
@@ -140,12 +146,13 @@ class ListDataset(Dataset):
         imgs = torch.stack([resize(img, self.img_size) for img in imgs])
         # imgs_lr = imgs
         imgs_lr = torch.stack([resize(img_lr, self.img_size // 8) for img_lr in img_lrs])
+        imgs_lr_edge = torch.stack([resize(img_lr_edge, self.img_size // 8) for img_lr_edge in edge_img_lrs])
         # Add sample index to targets
         for i, boxes in enumerate(bb_targets):
             boxes[:, 0] = i
         bb_targets = torch.cat(bb_targets, 0)
 
-        return paths, imgs,imgs_lr, bb_targets
+        return paths, imgs, imgs_lr, imgs_lr_edge, bb_targets
 
     def __len__(self):
         return len(self.img_files)

@@ -153,10 +153,11 @@ def train_one_epoch(
     for i, d in enumerate(train_dataloader):
         img = d[0].to(device)
         img_lr = d[1].to(device)
+        img_lr_edge=d[2].to(device)
         optimizer.zero_grad()
         aux_optimizer.zero_grad()
 
-        out_net = model(img, img_lr)
+        out_net = model(img, img_lr,img_lr_edge)
 
         out_criterion = criterion(out_net, img)
         out_criterion["loss"].backward()
@@ -220,7 +221,8 @@ def test_epoch(epoch, test_dataloader, model, criterion, type='mse'):
                 img = d[0].to(device)
                 img_lr = d[1].to(device)
                 # d = d.to(device)
-                out_net = model(img, img_lr)
+                img_lr_edge=d[2].to(device)
+                out_net = model(img, img_lr,img_lr_edge)
                 out_criterion = criterion(out_net, img)
 
                 aux_loss.update(model.aux_loss())
@@ -267,7 +269,7 @@ def test_epoch(epoch, test_dataloader, model, criterion, type='mse'):
 def parse_args(argv):
     parser = argparse.ArgumentParser(description="Example training script.")
     parser.add_argument(
-        "-d", "--dataset", type=str, required=True, help="Training dataset"
+        "-d", "--dataset", default='/home/adminroot/taofei/dataset/vimeo_septuplet', type=str, help="Training dataset"
     )
     parser.add_argument(
         "-e",
@@ -333,7 +335,7 @@ def parse_args(argv):
     )
     parser.add_argument("--checkpoint", type=str, help="Path to a checkpoint")
     parser.add_argument("--type", type=str, default='mse', help="loss type", choices=['mse', "ms-ssim"])
-    parser.add_argument("--save_path", type=str, help="save_path")
+    parser.add_argument("--save_path",default='/home/adminroot/taofei/MyCompression/edge', type=str, help="save_path")
     parser.add_argument(
         "--skip_epoch", type=int, default=0
     )

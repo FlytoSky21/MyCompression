@@ -4,7 +4,13 @@
     <list>
       <list>
         <remote-mappings server-id="python@6fb2595a-86b8-4fe9-a525-8622ea69987f" />
-        <remote-mappings server-id="python@sftp://adminroot@172.31.179.211:32116/home/adminroot/.conda/envs/pytorch/bin/python3.7" />
+        <remote-mappings server-id="python@sftp://adminroot@172.31.179.211:32116/home/adminroot/.conda/envs/pytorch/bin/python3.7">
+          <settings>
+            <list>
+              <mapping local-root="$PROJECT_DIR$" remote-root="/home/adminroot/taofei/MyCompression" />
+            </list>
+          </settings>
+        </remote-mappings>
       </list>
     </list>
   </component>

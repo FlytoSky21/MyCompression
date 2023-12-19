@@ -164,7 +164,7 @@ def _evaluate(model, dataloader, class_names, img_size, iou_thres, conf_thres, n
     # ssim_t=0
     # psnr_t=0
     sample_metrics = []  # List of tuples (TP, confs, pred)
-    for _, imgs, imgs_lr, targets in tqdm.tqdm(dataloader, desc="Validating"):
+    for _, imgs, imgs_lr,imgs_lr_edge, targets in tqdm.tqdm(dataloader, desc="Validating"):
         # Extract labels
         labels += targets[:, 1].tolist()
         # Rescale target
@@ -173,9 +173,10 @@ def _evaluate(model, dataloader, class_names, img_size, iou_thres, conf_thres, n
 
         imgs = Variable(imgs.type(Tensor), requires_grad=False)
         imgs_lr = Variable(imgs_lr.type(Tensor), requires_grad=False)
+        imgs_lr_edge=Variable(imgs_lr_edge.type(Tensor), requires_grad=False)
 
         with torch.no_grad():
-            outputs_net = model(imgs, imgs_lr)
+            outputs_net = model(imgs, imgs_lr,imgs_lr_edge)
             outputs = outputs_net['t_hat']
             outputs = non_max_suppression(outputs, conf_thres=conf_thres, iou_thres=nms_thres)
             count += 1
@@ -243,7 +244,7 @@ def run():
                         default="/home/adminroot/taofei/YOLO/Pytorch-YOLOv3/config/yolov3.cfg",
                         help="Path to model definition file (.cfg)")
     parser.add_argument("-w", "--weights", type=str,
-                        default="/home/adminroot/taofei/DCC2023fuxian/base_viemo_fixbn/0.0483checkpoint_best.pth.tar",
+                        default="/home/adminroot/taofei/MyCompression/edge/0.0483/checkpoint_110.pth.tar",
                         help="Path to weights or checkpoint file (.weights or .pth)")
     parser.add_argument("-d", "--data", type=str,
                         default="/home/adminroot/taofei/YOLO/Pytorch-YOLOv3/config/coco_dcc.data",

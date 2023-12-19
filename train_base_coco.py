@@ -15,8 +15,8 @@ import torch.optim as optim
 
 from torch.utils.data import DataLoader
 from torchvision import transforms
-from datasets.coco_dataset import Vimeo90KDataset
-# from datasets.ImageNet300k import Vimeo90KDataset
+# from datasets.coco_dataset import Vimeo90KDataset
+from datasets.ImageNet300k import Vimeo90KDataset
 
 from compressai.datasets import ImageFolder
 from compressai.zoo import models
@@ -154,10 +154,11 @@ def train_one_epoch(
 
         img = d[0].to(device)
         img_lr = d[1].to(device)
+        img_lr_edge=d[2].to(device)
         optimizer.zero_grad()
         aux_optimizer.zero_grad()
 
-        out_net = model(img, img_lr)
+        out_net = model(img, img_lr,img_lr_edge)
 
         out_criterion = criterion(out_net, img)
         out_criterion["loss"].backward()
@@ -171,7 +172,7 @@ def train_one_epoch(
 
         loss.update(out_criterion["loss"])
 
-        if i % 1000 == 0:
+        if i % 500 == 0:
             if type == 'mse':
                 print(
                     f"Train epoch {epoch}: ["
@@ -221,8 +222,9 @@ def test_epoch(epoch, test_dataloader, model, criterion, type='mse'):
             for d in test_dataloader:
                 img = d[0].to(device)
                 img_lr = d[1].to(device)
+                img_lr_edge = d[2].to(device)
                 # d = d.to(device)
-                out_net = model(img, img_lr)
+                out_net = model(img, img_lr,img_lr_edge)
                 out_criterion = criterion(out_net, img)
 
                 aux_loss.update(model.aux_loss())
@@ -268,20 +270,14 @@ def test_epoch(epoch, test_dataloader, model, criterion, type='mse'):
 
 def parse_args(argv):
     parser = argparse.ArgumentParser(description="Example training script.")
+
     parser.add_argument(
-        "-m",
-        "--model",
-        default="bmshj2018-factorized",
-        choices=models.keys(),
-        help="Model architecture (default: %(default)s)",
-    )
-    parser.add_argument(
-        "-d", "--dataset", type=str, required=True, help="Training dataset"
+        "-d", "--dataset", type=str, default='/home/adminroot/taofei/dataset/flicker', help="Training dataset"
     )
     parser.add_argument(
         "-e",
         "--epochs",
-        default=300,
+        default=1000,
         type=int,
         help="Number of epochs (default: %(default)s)",
     )
@@ -342,7 +338,7 @@ def parse_args(argv):
     )
     parser.add_argument("--checkpoint", type=str, help="Path to a checkpoint")
     parser.add_argument("--type", type=str, default='mse', help="loss type", choices=['mse', "ms-ssim"])
-    parser.add_argument("--save_path", type=str, help="save_path")
+    parser.add_argument("--save_path", type=str, default='/home/adminroot/taofei/MyCompression/result/base_training/fliker',help="save_path")
     parser.add_argument(
         "--skip_epoch", type=int, default=0
     )
@@ -389,8 +385,8 @@ def main(argv):
         [transforms.CenterCrop(args.patch_size)]
     )
 
-    train_dataset = Vimeo90KDataset(args.dataset, split="train2017", transform=train_transforms)
-    test_dataset = Vimeo90KDataset(args.dataset, split="val2017", transform=test_transforms)
+    train_dataset = Vimeo90KDataset(args.dataset, split="train", transform=train_transforms)
+    test_dataset = Vimeo90KDataset(args.dataset, split="test", transform=test_transforms)
 
     device = "cuda" if args.cuda and torch.cuda.is_available() else "cpu"
     print(f'test device is {device}')
