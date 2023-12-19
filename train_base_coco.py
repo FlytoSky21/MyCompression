@@ -8,6 +8,7 @@ import argparse
 import math
 import random
 import sys
+import time
 
 import torch
 import torch.nn as nn
@@ -154,11 +155,11 @@ def train_one_epoch(
 
         img = d[0].to(device)
         img_lr = d[1].to(device)
-        img_lr_edge=d[2].to(device)
+        img_lr_edge = d[2].to(device)
         optimizer.zero_grad()
         aux_optimizer.zero_grad()
 
-        out_net = model(img, img_lr,img_lr_edge)
+        out_net = model(img, img_lr, img_lr_edge)
 
         out_criterion = criterion(out_net, img)
         out_criterion["loss"].backward()
@@ -224,7 +225,7 @@ def test_epoch(epoch, test_dataloader, model, criterion, type='mse'):
                 img_lr = d[1].to(device)
                 img_lr_edge = d[2].to(device)
                 # d = d.to(device)
-                out_net = model(img, img_lr,img_lr_edge)
+                out_net = model(img, img_lr, img_lr_edge)
                 out_criterion = criterion(out_net, img)
 
                 aux_loss.update(model.aux_loss())
@@ -237,7 +238,7 @@ def test_epoch(epoch, test_dataloader, model, criterion, type='mse'):
             f"\tLoss: {loss.avg:.3f} |"
             f"\tsMSE loss: {smse_loss.avg:.3f} |"
             f"\tBpp loss: {base_bpp_loss.avg:.2f} |"
-            f"\tAux loss: {aux_loss.avg:.2f}\n"
+            f"\tAux loss: {aux_loss.avg:.2f}"
         )
 
     else:
@@ -338,7 +339,8 @@ def parse_args(argv):
     )
     parser.add_argument("--checkpoint", type=str, help="Path to a checkpoint")
     parser.add_argument("--type", type=str, default='mse', help="loss type", choices=['mse', "ms-ssim"])
-    parser.add_argument("--save_path", type=str, default='/home/adminroot/taofei/MyCompression/result/base_training/fliker',help="save_path")
+    parser.add_argument("--save_path", type=str,
+                        default='/home/adminroot/taofei/MyCompression/result/base_training/fliker', help="save_path")
     parser.add_argument(
         "--skip_epoch", type=int, default=0
     )
@@ -436,6 +438,7 @@ def main(argv):
             lr_scheduler.load_state_dict(checkpoint["lr_scheduler"])
 
     best_loss = float("inf")
+    start_training_time = time.time()
     for epoch in range(last_epoch, args.epochs):
         print(f"Learning rate: {optimizer.param_groups[0]['lr']}")
         train_one_epoch(
@@ -452,6 +455,13 @@ def main(argv):
         loss = test_epoch(epoch, test_dataloader, net, criterion, type)
         writer.add_scalar('test_loss', loss, epoch)
         lr_scheduler.step(loss)
+        end_epoch_time = time.time()
+        run_time = round(end_epoch_time - start_training_time)
+        # 计算时分秒
+        hour = run_time // 3600
+        minute = (run_time - 3600 * hour) // 60
+        second = run_time - 3600 * hour - 60 * minute
+        print(f"Epoch {epoch}/{args.epochs}: Epoch Duration: {hour}hour:{minute}minute:{second}seconds\n")
 
         is_best = loss < best_loss
         best_loss = min(loss, best_loss)
