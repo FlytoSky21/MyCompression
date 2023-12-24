@@ -18,7 +18,7 @@ from pytorchyolo.utils.utils import load_classes, ap_per_class, get_batch_statis
 from pytorchyolo.utils.datasets_dcc import ListDataset
 from pytorchyolo.utils.transforms import DEFAULT_TRANSFORMS
 from pytorchyolo.utils.parse_config import parse_data_config
-from models.dcc2023_base import DCC2023Model
+from models.dcc2023_edge_grad_rrdb import DCC2023Model
 import math
 from pytorch_msssim import ms_ssim
 
@@ -244,7 +244,7 @@ def run():
                         default="/home/adminroot/taofei/YOLO/Pytorch-YOLOv3/config/yolov3.cfg",
                         help="Path to model definition file (.cfg)")
     parser.add_argument("-w", "--weights", type=str,
-                        default="/home/adminroot/taofei/MyCompression/result/base_training/fliker/0.0483/checkpoint_best.pth.tar",
+                        default="/home/adminroot/taofei/MyCompression/result/grad_joint_training/flicker/concate_rrdb/0.0483/checkpoint_300.pth.tar",
                         help="Path to weights or checkpoint file (.weights or .pth)")
     parser.add_argument("-d", "--data", type=str,
                         default="/home/adminroot/taofei/YOLO/Pytorch-YOLOv3/config/coco_dcc.data",
